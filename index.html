@@ -6,14 +6,14 @@
   <meta name="theme-color" content="#f4f6f1">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="柏と3分">
+  <meta name="apple-mobile-web-app-title" content="1min">
   <link rel="manifest" href="./manifest.json">
   <link rel="apple-touch-icon" href="./icon-192.png">
-  <title>柏と3分</title>
+  <title>1min</title>
   <style>
     :root {
       --bg: #f4f6f1;
-      --card: rgba(255,255,255,.88);
+      --card: rgba(255,255,255,.9);
       --ink: #20251f;
       --muted: #6f776c;
       --line: #dde4da;
@@ -22,58 +22,71 @@
       --shadow: 0 12px 32px rgba(44,58,40,.08);
     }
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-    html, body { margin: 0; min-height: 100%; background: var(--bg); color: var(--ink); font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif; }
-    body { padding: max(18px, env(safe-area-inset-top)) 16px max(28px, env(safe-area-inset-bottom)); }
-    .app { max-width: 560px; margin: 0 auto; }
-    .top { padding: 8px 2px 18px; }
-    h1 { margin: 0; font-size: 28px; letter-spacing: .02em; }
-    .date { margin-top: 6px; color: var(--muted); font-size: 14px; }
-    .card { background: var(--card); border: 1px solid rgba(255,255,255,.7); border-radius: 24px; padding: 18px; box-shadow: var(--shadow); margin-bottom: 14px; backdrop-filter: blur(10px); }
-    .subjects { display: grid; gap: 12px; }
-    .subject {
-      width: 100%; border: 1px solid var(--line); background: #fff; color: var(--ink);
-      border-radius: 18px; padding: 16px 16px; display: flex; align-items: center; justify-content: space-between;
-      font: inherit; font-weight: 700; font-size: 18px; cursor: pointer; min-height: 64px;
-    }
-    .subject .left { display:flex; gap: 11px; align-items:center; }
-    .subject .icon { font-size: 23px; }
-    .subject .state { font-size: 14px; color: var(--muted); font-weight: 600; }
-    .subject.done { background: var(--accent-soft); border-color: #cbd8c6; }
-    .subject.done .state { color: var(--accent); }
-    .summary { display:grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 16px; }
+    html, body { margin:0; min-height:100%; background:var(--bg); color:var(--ink);
+      font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif; }
+    body { padding:max(18px, env(safe-area-inset-top)) 16px max(28px, env(safe-area-inset-bottom)); }
+    .app { max-width:560px; margin:0 auto; }
+    .top { padding:8px 2px 18px; }
+    h1 { margin:0; font-size:31px; letter-spacing:.02em; }
+    .tagline { margin-top:7px; font-size:16px; font-weight:700; }
+    .date { margin-top:6px; color:var(--muted); font-size:13px; }
+    .card { background:var(--card); border:1px solid rgba(255,255,255,.7); border-radius:24px;
+      padding:18px; box-shadow:var(--shadow); margin-bottom:14px; backdrop-filter:blur(10px); }
+    .subjects { display:grid; gap:12px; }
+    .subject { width:100%; border:1px solid var(--line); background:#fff; color:var(--ink);
+      border-radius:18px; padding:16px; display:flex; align-items:center; justify-content:space-between;
+      font:inherit; font-weight:700; font-size:18px; cursor:pointer; min-height:64px; }
+    .subject .left { display:flex; gap:11px; align-items:center; }
+    .subject .icon { font-size:23px; }
+    .subject .state { font-size:14px; color:var(--muted); font-weight:600; }
+    .subject.done { background:var(--accent-soft); border-color:#cbd8c6; }
+    .subject.done .state { color:var(--accent); }
+    .summary { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:16px; }
     .summaryBox { background:#fff; border:1px solid var(--line); border-radius:16px; padding:13px; }
     .summaryLabel { color:var(--muted); font-size:12px; margin-bottom:4px; }
     .summaryValue { font-size:20px; font-weight:800; }
-    .message { margin: 16px 2px 0; color: var(--accent); font-weight: 700; text-align:center; min-height: 24px; }
+    .message { margin:16px 2px 0; color:var(--accent); font-weight:700; text-align:center; min-height:24px; }
     .sectionTitle { font-size:15px; font-weight:800; margin:0 0 12px; }
-    .week { display:grid; grid-template-columns: repeat(7,1fr); gap:6px; text-align:center; }
-    .day { padding:8px 2px; border-radius:14px; }
-    .day.today { background:#fff; outline:1px solid var(--line); }
-    .dow { font-size:11px; color:var(--muted); }
-    .leaf { font-size:22px; line-height:1.3; margin:3px 0; }
-    .num { font-size:11px; color:var(--muted); }
+    .calendarHeader { display:grid; grid-template-columns:44px 1fr 44px; align-items:center; margin-bottom:10px; }
+    .calendarTitle { text-align:center; font-size:17px; font-weight:800; }
+    .monthBtn { border:0; background:transparent; color:var(--accent); font:inherit; font-size:28px; line-height:1; padding:4px; cursor:pointer; }
+    .calendarWrap { overflow:hidden; touch-action:pan-y; }
+    .calendarWeekdays { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; margin-bottom:4px; }
+    .calendarWeekdays div { text-align:center; font-size:11px; color:var(--muted); padding:4px 0; }
+    .calendar { display:grid; grid-template-columns:repeat(7,1fr); gap:5px; transition:transform .16s ease, opacity .16s ease; }
+    .calDay { min-height:58px; border-radius:14px; padding:6px 3px; text-align:center; display:flex; flex-direction:column; align-items:center; justify-content:flex-start; }
+    .calDay.today { background:#fff; outline:1px solid var(--line); }
+    .calDay.empty { visibility:hidden; }
+    .calDay.editable { cursor:pointer; }
+    .calDay.editable:active { background:var(--accent-soft); }
+    .calDay.future { opacity:.45; }
+    .calNum { font-size:11px; color:var(--muted); line-height:1.2; }
+    .calLeaf { font-size:21px; line-height:1.4; margin-top:4px; }
+    .editSubjects { display:grid; gap:10px; margin-top:14px; }
+    .editChoice { display:flex; align-items:center; gap:10px; border:1px solid var(--line); border-radius:14px; padding:12px 14px; background:#fff; }
+    .editChoice input { width:20px; height:20px; }
     .actions { display:grid; gap:9px; }
-    .action {
-      border: 1px solid var(--line); background:#fff; color:var(--ink); border-radius:15px;
-      padding:13px 14px; font: inherit; font-weight:700; cursor:pointer; text-align:left;
-    }
-    .action.primary { background: var(--accent); color:white; border-color:var(--accent); }
+    .action { border:1px solid var(--line); background:#fff; color:var(--ink); border-radius:15px;
+      padding:13px 14px; font:inherit; font-weight:700; cursor:pointer; text-align:left; }
+    .action.primary { background:var(--accent); color:#fff; border-color:var(--accent); }
     .small { font-size:12px; color:var(--muted); line-height:1.55; margin-top:10px; }
-    .footer { text-align:center; color:var(--muted); font-size:11px; padding: 8px 0 0; }
+    .footer { text-align:center; color:var(--muted); font-size:11px; padding:8px 0 0; }
     dialog { width:min(92vw,500px); border:0; border-radius:22px; padding:0; box-shadow:0 20px 60px rgba(0,0,0,.2); }
     dialog::backdrop { background:rgba(0,0,0,.28); }
     .dialogBody { padding:18px; }
     .dialogBody h2 { margin:0 0 8px; font-size:20px; }
-    textarea { width:100%; height:220px; resize:none; border:1px solid var(--line); border-radius:12px; padding:10px; font-size:12px; }
-    .dialogActions { display:flex; gap:8px; justify-content:flex-end; margin-top:10px; }
+    .nameInput { width:100%; border:1px solid var(--line); border-radius:14px; padding:13px 14px; font:inherit; font-size:17px; }
+    .dialogActions { display:flex; gap:8px; justify-content:flex-end; margin-top:12px; }
     .miniBtn { border:1px solid var(--line); background:#fff; border-radius:12px; padding:10px 12px; font:inherit; font-weight:700; }
+    textarea { width:100%; height:220px; resize:none; border:1px solid var(--line); border-radius:12px; padding:10px; font-size:12px; }
     input[type=file] { display:none; }
   </style>
 </head>
 <body>
 <div class="app">
   <header class="top">
-    <h1>柏と3分</h1>
+    <h1>1min</h1>
+    <div class="tagline" id="tagline">1分だってチリツモ。</div>
     <div class="date" id="dateText"></div>
   </header>
 
@@ -103,33 +116,71 @@
         <div class="summaryValue" id="streak">0日</div>
       </div>
     </div>
-    <div class="message" id="message">今日も少しだけ。</div>
+    <div class="message" id="message">まずは1分。</div>
   </section>
 
   <section class="card">
-    <div class="sectionTitle">最近の7日</div>
-    <div class="week" id="week"></div>
+    <div class="sectionTitle">月ごとのチリツモ</div>
+    <div class="calendarHeader">
+      <button class="monthBtn" id="prevMonth" aria-label="前の月">‹</button>
+      <div class="calendarTitle" id="calendarTitle"></div>
+      <button class="monthBtn" id="nextMonth" aria-label="次の月">›</button>
+    </div>
+    <div class="calendarWrap" id="calendarWrap">
+      <div class="calendarWeekdays">
+        <div>日</div><div>月</div><div>火</div><div>水</div><div>木</div><div>金</div><div>土</div>
+      </div>
+      <div class="calendar" id="calendar"></div>
+    </div>
   </section>
 
   <section class="card">
-    <div class="sectionTitle">記録を守る</div>
+    <div class="sectionTitle">設定・バックアップ</div>
     <div class="actions">
+      <button class="action" id="changeName">✏️ 表示名を変える</button>
       <button class="action primary" id="backupJson">💾 バックアップ（JSON）</button>
       <button class="action" id="exportCsv">📊 CSVを書き出す</button>
       <label class="action" for="restoreFile">♻️ バックアップから復元</label>
       <input id="restoreFile" type="file" accept=".json,application/json">
     </div>
     <div class="small" id="backupInfo">最終バックアップ：まだありません</div>
-    <div class="small">保存先では「ファイルに保存」を選び、pCloudを選べます。記録データは通常、このiPhone内だけに保存されます。</div>
+    <div class="small">表示名と学習記録はこのiPhone内に保存されます。公開側には保存されません。</div>
   </section>
 
-  <div class="footer">Kashiwa 3min · v0.1</div>
+  <div class="footer">1min · v0.6</div>
 </div>
+
+<dialog id="nameDialog">
+  <div class="dialogBody">
+    <h2>表示名</h2>
+    <div class="small" style="margin:0 0 10px;">この名前はこの端末内だけに保存されます。</div>
+    <input id="nameInput" class="nameInput" type="text" maxlength="20" placeholder="表示名">
+    <div class="dialogActions">
+      <button class="miniBtn" id="saveName">保存</button>
+    </div>
+  </div>
+</dialog>
+
+<dialog id="editDialog">
+  <div class="dialogBody">
+    <h2 id="editDateTitle">記録を編集</h2>
+    <div class="small" style="margin:0 0 8px;">この日の記録を変更できます。</div>
+    <div class="editSubjects">
+      <label class="editChoice"><input type="checkbox" id="editJapanese"> 📖 国語</label>
+      <label class="editChoice"><input type="checkbox" id="editMath"> ➗ 数学</label>
+      <label class="editChoice"><input type="checkbox" id="editEnglish"> 🔤 英語</label>
+    </div>
+    <div class="dialogActions">
+      <button class="miniBtn" id="cancelEdit">キャンセル</button>
+      <button class="miniBtn" id="saveEdit">保存</button>
+    </div>
+  </div>
+</dialog>
 
 <dialog id="fallbackDialog">
   <div class="dialogBody">
     <h2>バックアップ内容</h2>
-    <div class="small" style="margin:0 0 8px;">共有できない場合は、この内容をコピーしてテキストファイルとして保存できます。</div>
+    <div class="small" style="margin:0 0 8px;">共有できない場合は、この内容をコピーして保存できます。</div>
     <textarea id="fallbackText" readonly></textarea>
     <div class="dialogActions">
       <button class="miniBtn" id="copyText">コピー</button>
@@ -140,95 +191,58 @@
 
 <script>
 (() => {
-  const STORAGE_KEY = 'kashiwa3min.v1';
+  const STORAGE_KEY = 'oneMin.v1';
   const SUBJECTS = ['japanese','math','english'];
   const DOW = ['日','月','火','水','木','金','土'];
 
-  const defaultState = () => ({
-    version: 1,
-    records: {},
-    lastBackupAt: null
-  });
+  const defaultState = () => ({ version:1, displayName:'', records:{}, lastBackupAt:null });
 
   function loadState() {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (!raw) return defaultState();
       const parsed = JSON.parse(raw);
-      if (!parsed || typeof parsed !== 'object') return defaultState();
       return {
-        version: 1,
+        version:1,
+        displayName: typeof parsed.displayName === 'string' ? parsed.displayName : '',
         records: parsed.records && typeof parsed.records === 'object' ? parsed.records : {},
         lastBackupAt: parsed.lastBackupAt || null
       };
-    } catch {
-      return defaultState();
-    }
+    } catch { return defaultState(); }
   }
 
   let state = loadState();
-
-  function saveState() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  }
-
-  function pad(n) { return String(n).padStart(2,'0'); }
-
-  function dateKey(d = new Date()) {
-    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
-  }
-
-  function prettyDate(d = new Date()) {
-    return `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日（${DOW[d.getDay()]}）`;
-  }
-
-  function blankRecord() {
-    return { japanese:false, math:false, english:false };
-  }
-
-  function getRecord(key) {
-    return Object.assign(blankRecord(), state.records[key] || {});
-  }
-
-  function countRecord(rec) {
-    return SUBJECTS.reduce((n,s) => n + (rec[s] ? 1 : 0), 0);
-  }
-
-  function hasActivity(key) {
-    return countRecord(getRecord(key)) > 0;
-  }
+  let calendarOffset = 0;
+  let editingDateKey = null;
+  const saveState = () => localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  const pad = n => String(n).padStart(2,'0');
+  const dateKey = (d=new Date()) => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+  const prettyDate = (d=new Date()) => `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日（${DOW[d.getDay()]}）`;
+  const blankRecord = () => ({japanese:false, math:false, english:false});
+  const getRecord = key => Object.assign(blankRecord(), state.records[key] || {});
+  const countRecord = rec => SUBJECTS.reduce((n,s)=>n+(rec[s]?1:0),0);
+  const hasActivity = key => countRecord(getRecord(key)) > 0;
 
   function addDays(date, n) {
     const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-    d.setDate(d.getDate() + n);
+    d.setDate(d.getDate()+n);
     return d;
   }
 
   function streakCount() {
     const today = new Date();
-    let cursor = hasActivity(dateKey(today)) ? today : addDays(today, -1);
+    let cursor = hasActivity(dateKey(today)) ? today : addDays(today,-1);
     let n = 0;
     while (hasActivity(dateKey(cursor))) {
       n++;
-      cursor = addDays(cursor, -1);
+      cursor = addDays(cursor,-1);
       if (n > 5000) break;
     }
     return n;
   }
 
-  function leafFor(count) {
-    if (count === 1) return '🌱';
-    if (count === 2) return '🌿';
-    if (count === 3) return '🌳';
-    return '·';
-  }
-
-  function messageFor(count) {
-    if (count === 1) return 'ひとつできた 🌱';
-    if (count === 2) return 'いい感じ 🌿';
-    if (count === 3) return '今日は3つ 🌳';
-    return '今日も少しだけ。';
-  }
+  const leafFor = count => count===1 ? '🌱' : count===2 ? '🌿' : count===3 ? '🌳' : '·';
+  const messageFor = count => count===1 ? '1分でも、ちゃんと前進。' : count===2 ? 'いい感じ。' : count===3 ? '今日は3つ。' : 'まずは1分。';
 
   function render() {
     const now = new Date();
@@ -237,6 +251,8 @@
     const count = countRecord(rec);
 
     document.getElementById('dateText').textContent = prettyDate(now);
+    document.getElementById('tagline').textContent =
+      state.displayName ? `${state.displayName}さん、1分だってチリツモ。` : '1分だってチリツモ。';
 
     document.querySelectorAll('.subject').forEach(btn => {
       const sub = btn.dataset.subject;
@@ -250,16 +266,51 @@
     document.getElementById('streak').textContent = `${streakCount()}日`;
     document.getElementById('message').textContent = messageFor(count);
 
-    const week = document.getElementById('week');
-    week.innerHTML = '';
-    for (let i = 6; i >= 0; i--) {
-      const d = addDays(now, -i);
-      const k = dateKey(d);
-      const c = countRecord(getRecord(k));
+    const calendarTitle = document.getElementById('calendarTitle');
+    const calendar = document.getElementById('calendar');
+    const viewDate = new Date(now.getFullYear(), now.getMonth() + calendarOffset, 1);
+    calendarTitle.textContent = `${viewDate.getFullYear()}年${viewDate.getMonth()+1}月`;
+    calendar.innerHTML = '';
+
+    const firstDay = new Date(viewDate.getFullYear(), viewDate.getMonth(), 1);
+    const lastDate = new Date(viewDate.getFullYear(), viewDate.getMonth()+1, 0).getDate();
+
+    for (let i=0; i<firstDay.getDay(); i++) {
+      const blank = document.createElement('div');
+      blank.className = 'calDay empty';
+      calendar.appendChild(blank);
+    }
+
+    for (let day=1; day<=lastDate; day++) {
+      const d = new Date(viewDate.getFullYear(), viewDate.getMonth(), day);
+      const keyForDay = dateKey(d);
+      const c = countRecord(getRecord(keyForDay));
       const div = document.createElement('div');
-      div.className = 'day' + (i === 0 ? ' today' : '');
-      div.innerHTML = `<div class="dow">${DOW[d.getDay()]}</div><div class="leaf">${leafFor(c)}</div><div class="num">${d.getDate()}</div>`;
-      week.appendChild(div);
+      const todayOnly = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const thisDayOnly = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+      const isToday = thisDayOnly.getTime() === todayOnly.getTime();
+      const isFuture = thisDayOnly.getTime() > todayOnly.getTime();
+
+      div.className = 'calDay' +
+        (isToday ? ' today' : '') +
+        (isFuture ? ' future' : ' editable');
+
+      div.innerHTML = `<div class="calNum">${day}</div><div class="calLeaf">${leafFor(c)}</div>`;
+
+      if (!isFuture) {
+        div.setAttribute('role', 'button');
+        div.setAttribute('tabindex', '0');
+        div.setAttribute('aria-label', `${viewDate.getFullYear()}年${viewDate.getMonth()+1}月${day}日の記録を編集`);
+        div.addEventListener('click', () => openEditDialog(keyForDay, d));
+        div.addEventListener('keydown', e => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            openEditDialog(keyForDay, d);
+          }
+        });
+      }
+
+      calendar.appendChild(div);
     }
 
     const info = document.getElementById('backupInfo');
@@ -284,12 +335,26 @@
     });
   });
 
+  function openNameDialog() {
+    document.getElementById('nameInput').value = state.displayName || '';
+    document.getElementById('nameDialog').showModal();
+  }
+
+  document.getElementById('changeName').addEventListener('click', openNameDialog);
+  document.getElementById('saveName').addEventListener('click', () => {
+    state.displayName = document.getElementById('nameInput').value.trim();
+    saveState();
+    document.getElementById('nameDialog').close();
+    render();
+  });
+
   function jsonBackupText() {
     return JSON.stringify({
-      app: '柏と3分',
-      schemaVersion: 1,
-      exportedAt: new Date().toISOString(),
-      records: state.records
+      app:'1min',
+      schemaVersion:1,
+      exportedAt:new Date().toISOString(),
+      displayName:state.displayName,
+      records:state.records
     }, null, 2);
   }
 
@@ -298,7 +363,7 @@
     const rows = [['日付','国語','数学','英語','達成数']];
     for (const k of keys) {
       const r = getRecord(k);
-      rows.push([k, r.japanese ? 1 : 0, r.math ? 1 : 0, r.english ? 1 : 0, countRecord(r)]);
+      rows.push([k, r.japanese?1:0, r.math?1:0, r.english?1:0, countRecord(r)]);
     }
     return '\uFEFF' + rows.map(row =>
       row.map(v => `"${String(v).replaceAll('"','""')}"`).join(',')
@@ -306,17 +371,13 @@
   }
 
   async function shareOrFallback(filename, type, text, kind) {
-    const file = new File([text], filename, { type });
+    const file = new File([text], filename, {type});
     try {
       if (navigator.share && (!navigator.canShare || navigator.canShare({files:[file]}))) {
-        await navigator.share({
-          title: filename,
-          files: [file]
-        });
-        if (kind === 'json') {
+        await navigator.share({title:filename, files:[file]});
+        if (kind==='json') {
           state.lastBackupAt = new Date().toISOString();
-          saveState();
-          render();
+          saveState(); render();
         }
         return;
       }
@@ -327,16 +388,12 @@
     try {
       const url = URL.createObjectURL(file);
       const a = document.createElement('a');
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      setTimeout(() => URL.revokeObjectURL(url), 1500);
-      if (kind === 'json') {
+      a.href = url; a.download = filename;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(()=>URL.revokeObjectURL(url),1500);
+      if (kind==='json') {
         state.lastBackupAt = new Date().toISOString();
-        saveState();
-        render();
+        saveState(); render();
       }
       return;
     } catch {}
@@ -346,61 +403,139 @@
   }
 
   document.getElementById('backupJson').addEventListener('click', async () => {
-    const filename = `kashiwa-3min-backup-${dateKey()}.json`;
-    await shareOrFallback(filename, 'application/json;charset=utf-8', jsonBackupText(), 'json');
+    await shareOrFallback(`1min-backup-${dateKey()}.json`, 'application/json;charset=utf-8', jsonBackupText(), 'json');
   });
 
   document.getElementById('exportCsv').addEventListener('click', async () => {
     const now = new Date();
-    const filename = `kashiwa-3min-${now.getFullYear()}-${pad(now.getMonth()+1)}.csv`;
-    await shareOrFallback(filename, 'text/csv;charset=utf-8', csvText(), 'csv');
+    await shareOrFallback(`1min-${now.getFullYear()}-${pad(now.getMonth()+1)}.csv`, 'text/csv;charset=utf-8', csvText(), 'csv');
   });
 
-  document.getElementById('restoreFile').addEventListener('change', async (event) => {
-    const file = event.target.files && event.target.files[0];
-    event.target.value = '';
+  document.getElementById('restoreFile').addEventListener('change', async e => {
+    const file = e.target.files && e.target.files[0];
+    e.target.value = '';
     if (!file) return;
     try {
-      const text = await file.text();
-      const obj = JSON.parse(text);
+      const obj = JSON.parse(await file.text());
       if (!obj || obj.schemaVersion !== 1 || !obj.records || typeof obj.records !== 'object') {
-        alert('このバックアップは読み込めませんでした。');
-        return;
+        alert('このバックアップは読み込めませんでした。'); return;
       }
-      const ok = confirm('現在の記録を、このバックアップの内容で置き換えますか？');
-      if (!ok) return;
+      if (!confirm('現在の記録を、このバックアップの内容で置き換えますか？')) return;
+      state.displayName = typeof obj.displayName === 'string' ? obj.displayName : state.displayName;
       state.records = obj.records;
-      saveState();
-      render();
+      saveState(); render();
       alert('復元しました。');
-    } catch {
-      alert('バックアップファイルを読み込めませんでした。');
-    }
+    } catch { alert('バックアップファイルを読み込めませんでした。'); }
   });
 
   document.getElementById('copyText').addEventListener('click', async () => {
     const text = document.getElementById('fallbackText').value;
-    try {
-      await navigator.clipboard.writeText(text);
-      alert('コピーしました。');
-    } catch {
+    try { await navigator.clipboard.writeText(text); alert('コピーしました。'); }
+    catch {
       document.getElementById('fallbackText').select();
       document.execCommand('copy');
       alert('コピーしました。');
     }
   });
 
-  document.getElementById('closeDialog').addEventListener('click', () => {
-    document.getElementById('fallbackDialog').close();
+  document.getElementById('closeDialog').addEventListener('click', () =>
+    document.getElementById('fallbackDialog').close()
+  );
+
+
+
+  function openEditDialog(key, dateObj) {
+    editingDateKey = key;
+    const rec = getRecord(key);
+
+    document.getElementById('editDateTitle').textContent =
+      `${dateObj.getFullYear()}年${dateObj.getMonth()+1}月${dateObj.getDate()}日`;
+
+    document.getElementById('editJapanese').checked = !!rec.japanese;
+    document.getElementById('editMath').checked = !!rec.math;
+    document.getElementById('editEnglish').checked = !!rec.english;
+
+    document.getElementById('editDialog').showModal();
+  }
+
+  document.getElementById('cancelEdit').addEventListener('click', () => {
+    editingDateKey = null;
+    document.getElementById('editDialog').close();
   });
+
+  document.getElementById('saveEdit').addEventListener('click', () => {
+    if (!editingDateKey) return;
+
+    const rec = {
+      japanese: document.getElementById('editJapanese').checked,
+      math: document.getElementById('editMath').checked,
+      english: document.getElementById('editEnglish').checked
+    };
+
+    if (countRecord(rec) === 0) {
+      delete state.records[editingDateKey];
+    } else {
+      state.records[editingDateKey] = rec;
+    }
+
+    saveState();
+    editingDateKey = null;
+    document.getElementById('editDialog').close();
+    render();
+  });
+
+  function changeMonth(delta) {
+    const calendar = document.getElementById('calendar');
+    calendar.style.opacity = '0';
+    calendar.style.transform = `translateX(${delta > 0 ? '-18px' : '18px'})`;
+    setTimeout(() => {
+      calendarOffset += delta;
+      render();
+      calendar.style.transition = 'none';
+      calendar.style.transform = `translateX(${delta > 0 ? '18px' : '-18px'})`;
+      calendar.style.opacity = '0';
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          calendar.style.transition = 'transform .16s ease, opacity .16s ease';
+          calendar.style.transform = 'translateX(0)';
+          calendar.style.opacity = '1';
+        });
+      });
+    }, 120);
+  }
+
+  document.getElementById('prevMonth').addEventListener('click', () => changeMonth(-1));
+  document.getElementById('nextMonth').addEventListener('click', () => changeMonth(1));
+
+  let touchStartX = 0;
+  let touchStartY = 0;
+  const calendarWrap = document.getElementById('calendarWrap');
+
+  calendarWrap.addEventListener('touchstart', e => {
+    const t = e.changedTouches[0];
+    touchStartX = t.clientX;
+    touchStartY = t.clientY;
+  }, {passive:true});
+
+  calendarWrap.addEventListener('touchend', e => {
+    const t = e.changedTouches[0];
+    const dx = t.clientX - touchStartX;
+    const dy = t.clientY - touchStartY;
+
+    if (Math.abs(dx) > 45 && Math.abs(dx) > Math.abs(dy) * 1.3) {
+      if (dx < 0) changeMonth(1);   // swipe left -> next month
+      else changeMonth(-1);         // swipe right -> previous month
+    }
+  }, {passive:true});
 
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('./service-worker.js').catch(() => {});
+      navigator.serviceWorker.register('./service-worker.js').catch(()=>{});
     });
   }
 
   render();
+  if (!state.displayName) setTimeout(openNameDialog, 250);
 })();
 </script>
 </body>
