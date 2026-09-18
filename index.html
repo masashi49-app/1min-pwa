@@ -47,12 +47,15 @@
     .summaryValue { font-size:20px; font-weight:800; }
     .message { margin:16px 2px 0; color:var(--accent); font-weight:700; text-align:center; min-height:24px; }
     .sectionTitle { font-size:15px; font-weight:800; margin:0 0 12px; }
-    .week { display:grid; grid-template-columns:repeat(7,1fr); gap:6px; text-align:center; }
-    .day { padding:8px 2px; border-radius:14px; }
-    .day.today { background:#fff; outline:1px solid var(--line); }
-    .dow { font-size:11px; color:var(--muted); }
-    .leaf { font-size:22px; line-height:1.3; margin:3px 0; }
-    .num { font-size:11px; color:var(--muted); }
+    .calendarTitle { text-align:center; font-size:17px; font-weight:800; margin-bottom:12px; }
+    .calendarWeekdays { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; margin-bottom:4px; }
+    .calendarWeekdays div { text-align:center; font-size:11px; color:var(--muted); padding:4px 0; }
+    .calendar { display:grid; grid-template-columns:repeat(7,1fr); gap:5px; }
+    .calDay { min-height:58px; border-radius:14px; padding:6px 3px; text-align:center; display:flex; flex-direction:column; align-items:center; justify-content:flex-start; }
+    .calDay.today { background:#fff; outline:1px solid var(--line); }
+    .calDay.empty { visibility:hidden; }
+    .calNum { font-size:11px; color:var(--muted); line-height:1.2; }
+    .calLeaf { font-size:21px; line-height:1.4; margin-top:4px; }
     .actions { display:grid; gap:9px; }
     .action { border:1px solid var(--line); background:#fff; color:var(--ink); border-radius:15px;
       padding:13px 14px; font:inherit; font-weight:700; cursor:pointer; text-align:left; }
@@ -108,8 +111,12 @@
   </section>
 
   <section class="card">
-    <div class="sectionTitle">最近の7日</div>
-    <div class="week" id="week"></div>
+    <div class="sectionTitle">今月のチリツモ</div>
+    <div class="calendarTitle" id="calendarTitle"></div>
+    <div class="calendarWeekdays">
+      <div>日</div><div>月</div><div>火</div><div>水</div><div>木</div><div>金</div><div>土</div>
+    </div>
+    <div class="calendar" id="calendar"></div>
   </section>
 
   <section class="card">
@@ -125,7 +132,7 @@
     <div class="small">表示名と学習記録はこのiPhone内に保存されます。公開側には保存されません。</div>
   </section>
 
-  <div class="footer">1min · v0.3</div>
+  <div class="footer">1min · v0.4</div>
 </div>
 
 <dialog id="nameDialog">
@@ -226,15 +233,28 @@
     document.getElementById('streak').textContent = `${streakCount()}日`;
     document.getElementById('message').textContent = messageFor(count);
 
-    const week = document.getElementById('week');
-    week.innerHTML = '';
-    for (let i=6; i>=0; i--) {
-      const d = addDays(now,-i);
+    const calendarTitle = document.getElementById('calendarTitle');
+    const calendar = document.getElementById('calendar');
+    calendarTitle.textContent = `${now.getFullYear()}年${now.getMonth()+1}月`;
+    calendar.innerHTML = '';
+
+    const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+    const lastDate = new Date(now.getFullYear(), now.getMonth()+1, 0).getDate();
+
+    for (let i=0; i<firstDay.getDay(); i++) {
+      const blank = document.createElement('div');
+      blank.className = 'calDay empty';
+      calendar.appendChild(blank);
+    }
+
+    for (let day=1; day<=lastDate; day++) {
+      const d = new Date(now.getFullYear(), now.getMonth(), day);
       const c = countRecord(getRecord(dateKey(d)));
       const div = document.createElement('div');
-      div.className = 'day' + (i===0 ? ' today' : '');
-      div.innerHTML = `<div class="dow">${DOW[d.getDay()]}</div><div class="leaf">${leafFor(c)}</div><div class="num">${d.getDate()}</div>`;
-      week.appendChild(div);
+      const isToday = day===now.getDate();
+      div.className = 'calDay' + (isToday ? ' today' : '');
+      div.innerHTML = `<div class="calNum">${day}</div><div class="calLeaf">${leafFor(c)}</div>`;
+      calendar.appendChild(div);
     }
 
     const info = document.getElementById('backupInfo');
