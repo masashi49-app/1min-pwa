@@ -1,7 +1,7 @@
 {
-  "name": "1min",
-  "short_name": "1min",
-  "description": "1分から始める、国語・数学・英語の小さな学習記録。",
+  "name": "柏と3分",
+  "short_name": "柏と3分",
+  "description": "国語・数学・英語を毎日少しずつ続けるための、小さな学習記録アプリ。",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
