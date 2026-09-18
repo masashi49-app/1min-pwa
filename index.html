@@ -59,7 +59,7 @@
     .calDay.empty { visibility:hidden; }
     .calDay.editable { cursor:pointer; }
     .calDay.editable:active { background:var(--accent-soft); }
-    .calDay.future { opacity:.45; }
+    .calDay.future { opacity:.42; }
     .calNum { font-size:11px; color:var(--muted); line-height:1.2; }
     .calLeaf { font-size:21px; line-height:1.4; margin-top:4px; }
     .editSubjects { display:grid; gap:10px; margin-top:14px; }
@@ -120,7 +120,7 @@
   </section>
 
   <section class="card">
-    <div class="sectionTitle">月ごとのチリツモ</div>
+    <div class="sectionTitle">月間カレンダー</div>
     <div class="calendarHeader">
       <button class="monthBtn" id="prevMonth" aria-label="前の月">‹</button>
       <div class="calendarTitle" id="calendarTitle"></div>
@@ -147,7 +147,7 @@
     <div class="small">表示名と学習記録はこのiPhone内に保存されます。公開側には保存されません。</div>
   </section>
 
-  <div class="footer">1min · v0.6</div>
+  <div class="footer">1min · v0.7</div>
 </div>
 
 <dialog id="nameDialog">
@@ -164,7 +164,7 @@
 <dialog id="editDialog">
   <div class="dialogBody">
     <h2 id="editDateTitle">記録を編集</h2>
-    <div class="small" style="margin:0 0 8px;">この日の記録を変更できます。</div>
+    <div class="small" style="margin:0 0 8px;">この日の国語・数学・英語を変更できます。</div>
     <div class="editSubjects">
       <label class="editChoice"><input type="checkbox" id="editJapanese"> 📖 国語</label>
       <label class="editChoice"><input type="checkbox" id="editMath"> ➗ 数学</label>
@@ -274,20 +274,25 @@
 
     const firstDay = new Date(viewDate.getFullYear(), viewDate.getMonth(), 1);
     const lastDate = new Date(viewDate.getFullYear(), viewDate.getMonth()+1, 0).getDate();
+    const leading = firstDay.getDay();
+    const totalCells = 42; // 7 columns x 6 weeks keeps a stable monthly-calendar shape.
+    const todayOnly = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
-    for (let i=0; i<firstDay.getDay(); i++) {
-      const blank = document.createElement('div');
-      blank.className = 'calDay empty';
-      calendar.appendChild(blank);
-    }
+    for (let cell=0; cell<totalCells; cell++) {
+      const day = cell - leading + 1;
+      const div = document.createElement('div');
 
-    for (let day=1; day<=lastDate; day++) {
+      if (day < 1 || day > lastDate) {
+        div.className = 'calDay empty';
+        div.innerHTML = '<div class="calNum">0</div><div class="calLeaf">·</div>';
+        calendar.appendChild(div);
+        continue;
+      }
+
       const d = new Date(viewDate.getFullYear(), viewDate.getMonth(), day);
+      const thisDayOnly = new Date(d.getFullYear(), d.getMonth(), d.getDate());
       const keyForDay = dateKey(d);
       const c = countRecord(getRecord(keyForDay));
-      const div = document.createElement('div');
-      const todayOnly = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-      const thisDayOnly = new Date(d.getFullYear(), d.getMonth(), d.getDate());
       const isToday = thisDayOnly.getTime() === todayOnly.getTime();
       const isFuture = thisDayOnly.getTime() > todayOnly.getTime();
 
@@ -300,12 +305,14 @@
       if (!isFuture) {
         div.setAttribute('role', 'button');
         div.setAttribute('tabindex', '0');
-        div.setAttribute('aria-label', `${viewDate.getFullYear()}年${viewDate.getMonth()+1}月${day}日の記録を編集`);
-        div.addEventListener('click', () => openEditDialog(keyForDay, d));
+        div.setAttribute('aria-label', `${d.getFullYear()}年${d.getMonth()+1}月${day}日の記録を編集`);
+
+        const open = () => openEditDialog(keyForDay, d);
+        div.addEventListener('click', open);
         div.addEventListener('keydown', e => {
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
-            openEditDialog(keyForDay, d);
+            open();
           }
         });
       }

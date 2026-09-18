@@ -1,4 +1,4 @@
-const CACHE = '1min-v06';
+const CACHE = '1min-v07';
 const STATIC_ASSETS = [
   './manifest.json',
   './icon-192.png',
