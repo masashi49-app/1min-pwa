@@ -1,5 +1,6 @@
-const CACHE = '1min-v07';
+const CACHE = '1min-v08';
 const STATIC_ASSETS = [
+  './index.html',
   './manifest.json',
   './icon-192.png',
   './icon-512.png'
@@ -15,7 +16,7 @@ self.addEventListener('install', event => {
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(keys =>
-      Promise.all(keys.filter(key => key !== CACHE).map(key => caches.delete(key)))
+      Promise.all(keys.filter(key => /^1min-v\d+$/.test(key) && key !== CACHE).map(key => caches.delete(key)))
     )
   );
   self.clients.claim();

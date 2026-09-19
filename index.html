@@ -45,6 +45,21 @@
     .summaryBox { background:#fff; border:1px solid var(--line); border-radius:16px; padding:13px; }
     .summaryLabel { color:var(--muted); font-size:12px; margin-bottom:4px; }
     .summaryValue { font-size:20px; font-weight:800; }
+    .journey { background:linear-gradient(145deg,#edf3e7,#fff); }
+    .totalDays { font-size:36px; font-weight:800; color:var(--accent); margin:4px 0; }
+    .totalDays span { font-size:16px; }
+    .journeyNext { font-size:14px; font-weight:700; margin:10px 0; }
+    progress { width:100%; height:10px; accent-color:var(--accent); }
+    .specialCard { border:1px solid var(--line); border-radius:18px; padding:20px 14px; text-align:center; background:#fff; }
+    .specialIcon { font-size:48px; margin:10px 0; }
+    .specialCard h3 { font-size:19px; margin:8px 0; }
+    .specialCard p { font-size:14px; line-height:1.7; margin:8px 0; }
+    .cardChoices { display:grid; grid-template-columns:repeat(5,1fr); gap:6px; margin-top:12px; }
+    .cardChoice { border:1px solid var(--line); border-radius:12px; background:#fff; color:var(--ink); padding:10px 2px; font:inherit; font-size:11px; cursor:pointer; }
+    .cardChoice span { display:block; font-size:21px; margin-bottom:4px; }
+    .cardChoice[aria-pressed="true"] { outline:2px solid var(--accent); background:var(--accent-soft); }
+    .cardChoice:disabled { color:var(--muted); cursor:default; }
+    .monthBtn:disabled { opacity:.3; cursor:default; }
     .message { margin:16px 2px 0; color:var(--accent); font-weight:700; text-align:center; min-height:24px; }
     .sectionTitle { font-size:15px; font-weight:800; margin:0 0 12px; }
     .calendarHeader { display:grid; grid-template-columns:44px 1fr 44px; align-items:center; margin-bottom:10px; }
@@ -119,6 +134,27 @@
     <div class="message" id="message">まずは1分。</div>
   </section>
 
+  <section class="card journey" aria-labelledby="journeyTitle">
+    <h2 class="sectionTitle" id="journeyTitle">累積チリツモ日数</h2>
+    <div class="totalDays" id="totalDays" aria-live="polite">0<span>日</span></div>
+    <div class="small">1教科でも取り組めば1日。お休みの日があっても、積み重ねはそのまま。</div>
+    <div class="journeyNext" id="journeyNext" aria-live="polite"></div>
+    <progress id="journeyProgress" max="10" value="0" aria-label="次のスペシャルカードまでの進み具合"></progress>
+    <div class="small" id="milestoneMessage" aria-live="polite"></div>
+  </section>
+
+  <section class="card" aria-labelledby="specialTitle">
+    <h2 class="sectionTitle" id="specialTitle">10日ごとのスペシャルカード</h2>
+    <div class="calendarHeader">
+      <button class="monthBtn" id="prevChapter" aria-label="前の章">‹</button>
+      <div class="calendarTitle" id="chapterTitle"></div>
+      <button class="monthBtn" id="nextChapter" aria-label="次の章">›</button>
+    </div>
+    <div class="specialCard" id="specialCard" aria-live="polite"></div>
+    <div class="cardChoices" id="cardChoices" aria-label="スペシャルカード一覧"></div>
+    <div class="small">10日積み重ねるたびに、カードがひらきます。100日の先も、新しい章へ。</div>
+  </section>
+
   <section class="card">
     <div class="sectionTitle">月間カレンダー</div>
     <div class="calendarHeader">
@@ -147,7 +183,7 @@
     <div class="small">表示名と学習記録はこのiPhone内に保存されます。公開側には保存されません。</div>
   </section>
 
-  <div class="footer">1min · v0.7</div>
+  <div class="footer">1min · v0.8</div>
 </div>
 
 <dialog id="nameDialog">
@@ -214,6 +250,9 @@
   let state = loadState();
   let calendarOffset = 0;
   let editingDateKey = null;
+  let cardChapter = null;
+  let selectedMilestone = null;
+  let previousTotal = null;
   const saveState = () => localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   const pad = n => String(n).padStart(2,'0');
   const dateKey = (d=new Date()) => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
@@ -241,6 +280,87 @@
     return n;
   }
 
+  // Derived from the original records: no migration or separate reward counters.
+  function totalActivityDays() {
+    const today = dateKey();
+    return Object.keys(state.records).filter(key => {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(key) || key > today) return false;
+      const d = new Date(`${key}T12:00:00`);
+      return !Number.isNaN(d.getTime()) && dateKey(d) === key && hasActivity(key);
+    }).length;
+  }
+
+  const CARD_STAGES = [
+    ['🌱','小さな芽','積み重ねた1分から、小さな芽が顔を出しました。'],
+    ['🌿','ひろがる葉','あなたのペースで、葉が少しずつひろがっています。'],
+    ['🌳','育つ木','ひとつひとつの学びが、木を育てています。'],
+    ['🌼','ひらく花','積み重ねた日々に、花がひらきました。'],
+    ['🐦','訪れる鳥','育った枝に、小鳥が遊びにきました。'],
+    ['☀️','木漏れ日','葉のすきまから、やさしい光がこぼれています。'],
+    ['🪺','小さな巣','続けてきた場所に、小さな巣ができました。'],
+    ['🍃','通りぬける風','ひと休みしながら、また自分のペースで。'],
+    ['🌲','深まる成長','見えないところにも、根が伸びています。'],
+    ['🌳','最初の木','100日の積み重ねが、一本の木になりました。']
+  ];
+
+  function renderJourney() {
+    const total = totalActivityDays();
+    const unlocked = Math.floor(total / 10);
+    const next = (unlocked + 1) * 10;
+    const latestChapter = Math.floor(Math.max(0, unlocked - 1) / 10);
+    const availableChapter = Math.floor(total / 100);
+    if (cardChapter === null || previousTotal !== total) {
+      cardChapter = latestChapter;
+      selectedMilestone = unlocked || null;
+    }
+    previousTotal = total;
+    document.getElementById('totalDays').innerHTML = `${total}<span>日</span>`;
+    document.getElementById('journeyNext').textContent = `次の${next}日まで、あと${next - total}日`;
+    document.getElementById('journeyProgress').value = total % 10;
+    document.getElementById('milestoneMessage').textContent =
+      total > 0 && total % 10 === 0 ? `${total}日達成！ スペシャルカードがひらきました。` : '';
+    document.getElementById('chapterTitle').textContent = `第${cardChapter + 1}章 · ${cardChapter * 100 + 1}〜${(cardChapter + 1) * 100}日`;
+    document.getElementById('prevChapter').disabled = cardChapter === 0;
+    document.getElementById('nextChapter').disabled = cardChapter >= availableChapter;
+    const choices = document.getElementById('cardChoices');
+    choices.replaceChildren();
+    for (let stage=0; stage<10; stage++) {
+      const milestone = cardChapter * 10 + stage + 1;
+      const earned = milestone <= unlocked;
+      const button = document.createElement('button');
+      button.className = 'cardChoice';
+      button.disabled = !earned;
+      button.setAttribute('aria-pressed', String(milestone === selectedMilestone));
+      button.setAttribute('aria-label', `${milestone * 10}日 ${earned ? CARD_STAGES[stage][1] : 'まだひらいていません'}`);
+      button.innerHTML = `<span aria-hidden="true">${earned ? CARD_STAGES[stage][0] : '🔒'}</span>${milestone * 10}日`;
+      button.addEventListener('click', () => { selectedMilestone = milestone; renderJourney(); });
+      choices.appendChild(button);
+    }
+    const card = document.getElementById('specialCard');
+    if (selectedMilestone && selectedMilestone <= unlocked) {
+      const stage = (selectedMilestone - 1) % 10;
+      const chapter = Math.floor((selectedMilestone - 1) / 10) + 1;
+      let [icon, title, message] = CARD_STAGES[stage];
+      if (chapter > 1 && stage === 9) {
+        title = `${chapter}本目の木`;
+        message = '新しい木が仲間入り。あなたの小さな森は、これからも育ちます。';
+      }
+      card.innerHTML = `<div class="small">${selectedMilestone * 10}日達成 · 第${chapter}章</div><div class="specialIcon" aria-hidden="true">${icon}</div><h3>${title}</h3><p>${message}</p>`;
+    } else {
+      card.innerHTML = '<div class="specialIcon" aria-hidden="true">🌰</div><h3>次の物語は、ここから。</h3><p>小さな1分を積み重ねて、<br>最初のカードをひらこう。</p>';
+      if (cardChapter > 0) card.querySelector('p').textContent = `あと${next - total}日で、この章の最初のカードがひらきます。`;
+    }
+  }
+
+  function changeChapter(delta) {
+    cardChapter += delta;
+    const last = Math.min(Math.floor(totalActivityDays() / 10), (cardChapter + 1) * 10);
+    selectedMilestone = last > cardChapter * 10 ? last : null;
+    renderJourney();
+  }
+  document.getElementById('prevChapter').addEventListener('click', () => changeChapter(-1));
+  document.getElementById('nextChapter').addEventListener('click', () => changeChapter(1));
+
   const leafFor = count => count===1 ? '🌱' : count===2 ? '🌿' : count===3 ? '🌳' : '·';
   const messageFor = count => count===1 ? '1分でも、ちゃんと前進。' : count===2 ? 'いい感じ。' : count===3 ? '今日は3つ。' : 'まずは1分。';
 
@@ -265,6 +385,7 @@
     document.getElementById('todayCount').textContent = `${count} / 3`;
     document.getElementById('streak').textContent = `${streakCount()}日`;
     document.getElementById('message').textContent = messageFor(count);
+    renderJourney();
 
     const calendarTitle = document.getElementById('calendarTitle');
     const calendar = document.getElementById('calendar');
@@ -540,6 +661,15 @@
       navigator.serviceWorker.register('./service-worker.js').catch(()=>{});
     });
   }
+
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) render();
+  });
+  // Refresh the date even when the app stays open across midnight.
+  let renderedDay = dateKey();
+  setInterval(() => {
+    if (renderedDay !== dateKey()) { renderedDay = dateKey(); render(); }
+  }, 30000);
 
   render();
   if (!state.displayName) setTimeout(openNameDialog, 250);
